@@ -140,9 +140,18 @@ s! {
     }
 
     pub struct hostent {
+        #[cfg(target_os = "cygwin")]
+        pub h_name: *const ::c_char,
+        #[cfg(not(target_os = "cygwin"))]
         pub h_name: *mut ::c_char,
         pub h_aliases: *mut *mut ::c_char,
+        #[cfg(target_os = "cygwin")]
+        pub h_addrtype: ::c_short,
+        #[cfg(not(target_os = "cygwin"))]
         pub h_addrtype: ::c_int,
+        #[cfg(target_os = "cygwin")]
+        pub h_length: ::c_short,
+        #[cfg(not(target_os = "cygwin"))]
         pub h_length: ::c_int,
         pub h_addr_list: *mut *mut ::c_char,
     }
@@ -192,6 +201,9 @@ s! {
     pub struct servent {
         pub s_name: *mut ::c_char,
         pub s_aliases: *mut *mut ::c_char,
+        #[cfg(target_os = "cygwin")]
+        pub s_port: ::c_short,
+        #[cfg(not(target_os = "cygwin"))]
         pub s_port: ::c_int,
         pub s_proto: *mut ::c_char,
     }
@@ -236,7 +248,7 @@ pub const S_ISVTX: ::mode_t = 0x200;
 
 cfg_if! {
     if #[cfg(not(any(target_os = "haiku", target_os = "illumos",
-                     target_os = "solaris")))] {
+                     target_os = "solaris", target_os = "cygwin")))] {
         pub const IF_NAMESIZE: ::size_t = 16;
         pub const IFNAMSIZ: ::size_t = IF_NAMESIZE;
     }
@@ -310,9 +322,10 @@ cfg_if! {
     } else if #[cfg(feature = "std")] {
         // cargo build, don't pull in anything extra as the libstd dep
         // already pulls in all libs.
-    } else if #[cfg(all(target_os = "linux",
-                        any(target_env = "gnu", target_env = "uclibc"),
-                        feature = "rustc-dep-of-std"))] {
+    } else if #[cfg(all(any(all(target_os = "linux",
+                                any(target_env = "gnu", target_env = "uclibc")),
+                                target_os = "cygwin"),
+                                feature = "rustc-dep-of-std"))] {
         #[link(name = "util", kind = "static", modifiers = "-bundle",
             cfg(target_feature = "crt-static"))]
         #[link(name = "rt", kind = "static", modifiers = "-bundle",
@@ -1254,10 +1267,13 @@ extern "C" {
     pub fn getprotobyname(name: *const ::c_char) -> *mut protoent;
     pub fn getprotobynumber(proto: ::c_int) -> *mut protoent;
     pub fn chroot(name: *const ::c_char) -> ::c_int;
+    #[cfg(target_os = "cygwin")]
+    pub fn usleep(secs: ::useconds_t) -> ::c_int;
     #[cfg_attr(
         all(target_os = "macos", target_arch = "x86"),
         link_name = "usleep$UNIX2003"
     )]
+    #[cfg(not(target_os = "cygwin"))]
     pub fn usleep(secs: ::c_uint) -> ::c_int;
     #[cfg_attr(
         all(target_os = "macos", target_arch = "x86"),
@@ -1503,6 +1519,9 @@ cfg_if! {
     } else if #[cfg(target_os = "redox")] {
         mod redox;
         pub use self::redox::*;
+    } else if #[cfg(target_os = "cygwin")] {
+        mod cygwin;
+        pub use self::cygwin::*;
     } else {
         // Unknown target_os
     }
