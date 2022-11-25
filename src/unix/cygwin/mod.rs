@@ -3176,3 +3176,36 @@ extern "C" {
 extern "C" {
     pub fn getrandom(buf: *mut ::c_void, buflen: ::size_t, flags: ::c_uint) -> ::ssize_t;
 }
+
+// sys/mount.h
+pub const MOUNT_TEXT: ::c_uint = 0x01;
+pub const MOUNT_SYSTEM: ::c_uint = 0x08;
+pub const MOUNT_EXEC: ::c_uint = 0x10;
+pub const MOUNT_CYGDRIVE: ::c_uint = 0x20;
+pub const MOUNT_CYGWIN_EXEC: ::c_uint = 0x40;
+pub const MOUNT_SPARSE: ::c_uint = 0x80;
+pub const MOUNT_NOTEXEC: ::c_uint = 0x100;
+pub const MOUNT_DEVFS: ::c_uint = 0x200;
+pub const MOUNT_PROC: ::c_uint = 0x400;
+pub const MOUNT_RO: ::c_uint = 0x1000;
+pub const MOUNT_NOACL: ::c_uint = 0x2000;
+pub const MOUNT_NOPOSIX: ::c_uint = 0x4000;
+pub const MOUNT_OVERRIDE: ::c_uint = 0x8000;
+pub const MOUNT_IMMUTABLE: ::c_uint = 0x10000;
+pub const MOUNT_AUTOMATIC: ::c_uint = 0x20000;
+pub const MOUNT_DOS: ::c_uint = 0x40000;
+pub const MOUNT_IHASH: ::c_uint = 0x80000;
+pub const MOUNT_BIND: ::c_uint = 0x100000;
+pub const MOUNT_USER_TEMP: ::c_uint = 0x200000;
+pub const MOUNT_DONT_USE: ::c_uint = 0x80000000;
+
+extern "C" {
+    pub fn mount(
+        src: *const c_char,
+        target: *const c_char,
+        flags: ::c_uint,
+    ) -> ::c_int;
+
+    pub fn umount(target: *const c_char) -> ::c_int;
+    pub fn cygwin_umount(target: *const c_char, flags: ::c_uint) -> ::c_int;
+}
