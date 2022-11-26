@@ -3209,3 +3209,6 @@ extern "C" {
     pub fn umount(target: *const c_char) -> ::c_int;
     pub fn cygwin_umount(target: *const c_char, flags: ::c_uint) -> ::c_int;
 }
+
+// sys/features.h
+pub const _POSIX_VDISABLE: ::cc_t = 0;
