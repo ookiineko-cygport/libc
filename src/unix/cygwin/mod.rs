@@ -3212,3 +3212,10 @@ extern "C" {
 
 // sys/features.h
 pub const _POSIX_VDISABLE: ::cc_t = 0;
+
+// dirent.h
+extern "C" {
+    pub fn dirfd(dirp: *mut ::DIR) -> ::c_int;
+    pub fn seekdir(dirp: *mut ::DIR, loc: ::c_long);
+    pub fn telldir(dirp: *mut ::DIR) -> ::c_long;
+}
