@@ -3219,3 +3219,16 @@ extern "C" {
     pub fn seekdir(dirp: *mut ::DIR, loc: ::c_long);
     pub fn telldir(dirp: *mut ::DIR) -> ::c_long;
 }
+
+// machine/types.h
+pub type vm_offset_t = c_ulong;
+
+s! {
+    pub struct flock {
+        pub l_type: ::c_short,
+        pub l_whence: ::c_short,
+        pub l_start: off_t,
+        pub l_len: off_t,
+        pub l_pid: ::pid_t,
+    }
+}
