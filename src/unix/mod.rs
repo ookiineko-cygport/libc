@@ -41,13 +41,9 @@ cfg_if! {
     }
 }
 
-#[cfg_attr(feature = "extra_traits", derive(Debug))]
-pub enum DIR {}
-impl ::Copy for DIR {}
-impl ::Clone for DIR {
-    fn clone(&self) -> DIR {
-        *self
-    }
+missing! {
+    #[cfg_attr(feature = "extra_traits", derive(Debug))]
+    pub enum DIR {}
 }
 pub type locale_t = *mut ::c_void;
 
@@ -333,7 +329,7 @@ cfg_if! {
     if #[cfg(any(target_os = "l4re", target_os = "espidf"))] {
         // required libraries for L4Re and the ESP-IDF framework are linked externally, ATM
     } else if #[cfg(feature = "std")] {
-        // cargo build, don't pull in anything extra as the libstd dep
+        // cargo build, don't pull in anything extra as the std dep
         // already pulls in all libs.
     } else if #[cfg(all(any(all(target_os = "linux",
                                 any(target_env = "gnu", target_env = "uclibc")),
@@ -401,11 +397,6 @@ cfg_if! {
         #[link(name = "c")]
         #[link(name = "m")]
         extern {}
-    } else if #[cfg(target_os = "hermit")] {
-        // no_default_libraries is set to false for HermitCore, so only a link
-        // to "pthread" needs to be added.
-        #[link(name = "pthread")]
-        extern {}
     } else if #[cfg(target_env = "illumos")] {
         #[link(name = "c")]
         #[link(name = "m")]
@@ -432,21 +423,11 @@ cfg_if! {
     }
 }
 
-#[cfg_attr(feature = "extra_traits", derive(Debug))]
-pub enum FILE {}
-impl ::Copy for FILE {}
-impl ::Clone for FILE {
-    fn clone(&self) -> FILE {
-        *self
-    }
-}
-#[cfg_attr(feature = "extra_traits", derive(Debug))]
-pub enum fpos_t {} // FIXME: fill this out with a struct
-impl ::Copy for fpos_t {}
-impl ::Clone for fpos_t {
-    fn clone(&self) -> fpos_t {
-        *self
-    }
+missing! {
+    #[cfg_attr(feature = "extra_traits", derive(Debug))]
+    pub enum FILE {}
+    #[cfg_attr(feature = "extra_traits", derive(Debug))]
+    pub enum fpos_t {} // FIXME: fill this out with a struct
 }
 
 extern "C" {
@@ -1094,6 +1075,10 @@ extern "C" {
     pub fn pthread_exit(value: *mut ::c_void) -> !;
     pub fn pthread_attr_init(attr: *mut ::pthread_attr_t) -> ::c_int;
     pub fn pthread_attr_destroy(attr: *mut ::pthread_attr_t) -> ::c_int;
+    pub fn pthread_attr_getstacksize(
+        attr: *const ::pthread_attr_t,
+        stacksize: *mut ::size_t,
+    ) -> ::c_int;
     pub fn pthread_attr_setstacksize(attr: *mut ::pthread_attr_t, stack_size: ::size_t) -> ::c_int;
     pub fn pthread_attr_setdetachstate(attr: *mut ::pthread_attr_t, state: ::c_int) -> ::c_int;
     pub fn pthread_detach(thread: ::pthread_t) -> ::c_int;
@@ -1429,6 +1414,7 @@ extern "C" {
     pub fn lockf(fd: ::c_int, cmd: ::c_int, len: ::off_t) -> ::c_int;
 
 }
+
 cfg_if! {
     if #[cfg(not(any(target_os = "emscripten",
                      target_os = "android",
@@ -1598,15 +1584,21 @@ cfg_if! {
     } else if #[cfg(target_os = "haiku")] {
         mod haiku;
         pub use self::haiku::*;
-    } else if #[cfg(target_os = "hermit")] {
-        mod hermit;
-        pub use self::hermit::*;
     } else if #[cfg(target_os = "redox")] {
         mod redox;
         pub use self::redox::*;
     } else if #[cfg(target_os = "cygwin")] {
         mod cygwin;
         pub use self::cygwin::*;
+    } else if #[cfg(target_os = "nto")] {
+        mod nto;
+        pub use self::nto::*;
+    } else if #[cfg(target_os = "aix")] {
+        mod aix;
+        pub use self::aix::*;
+    } else if #[cfg(target_os = "hurd")] {
+        mod hurd;
+        pub use self::hurd::*;
     } else {
         // Unknown target_os
     }
