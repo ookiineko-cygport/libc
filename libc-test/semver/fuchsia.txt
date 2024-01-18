@@ -671,6 +671,7 @@ PR_SET_NAME
 PR_SET_NO_NEW_PRIVS
 PR_SET_PDEATHSIG
 PR_SET_PTRACER
+PR_SET_PTRACER_ANY
 PR_SET_SECCOMP
 PR_SET_SECUREBITS
 PR_SET_THP_DISABLE
@@ -1168,6 +1169,9 @@ accept4
 acct
 aiocb
 atof
+atoi
+atol
+atoll
 blkcnt64_t
 brk
 clearenv
@@ -1366,6 +1370,8 @@ stat64
 statfs
 statfs64
 statvfs64
+strtoll
+strtoull
 swapoff
 swapon
 sync

@@ -23,7 +23,7 @@ jobs:
           x86_64-unknown-linux-gnu,
         ]
     steps:
-      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@master
+      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@HEAD
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
       - uses: actions/checkout@v3
@@ -46,7 +46,7 @@ jobs:
           x86_64-apple-darwin,
         ]
     steps:
-      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@master
+      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@HEAD
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
       - uses: actions/checkout@v3
@@ -81,7 +81,7 @@ jobs:
           #    ARCH: i686
           - target: i686-pc-windows-msvc
     steps:
-      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@master
+      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@HEAD
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
       - uses: actions/checkout@v3
@@ -103,7 +103,7 @@ jobs:
     name: Style check
     runs-on: ubuntu-22.04
     steps:
-      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@master
+      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@HEAD
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
       - uses: actions/checkout@v3
@@ -134,10 +134,7 @@ jobs:
           arm-unknown-linux-gnueabihf,
           arm-unknown-linux-musleabihf,
           asmjs-unknown-emscripten,
-          # FIXME: Started to fail since 2022-10-10:
-          # error: linking with `i686-linux-android-gcc` failed: exit status: 1
-          # ld: error: cannot find -lunwind
-          # i686-linux-android,
+          i686-linux-android,
           i686-unknown-linux-musl,
           mips-unknown-linux-gnu,
           mips-unknown-linux-musl,
@@ -158,10 +155,7 @@ jobs:
           #wasm32-wasi,
           sparc64-unknown-linux-gnu,
           wasm32-unknown-emscripten,
-          # FIXME: Started to fail since 2022-10-10:
-          # error: linking with `x86_64-linux-android-gcc` failed: exit status: 1
-          # ld: error: cannot find -lunwind
-          # x86_64-linux-android,
+          x86_64-linux-android,
           x86_64-unknown-linux-gnux32,
           x86_64-unknown-linux-musl,
           # FIXME: It seems some items in `src/unix/mod.rs`
@@ -169,7 +163,7 @@ jobs:
           # x86_64-unknown-redox,
         ]
     steps:
-      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@master
+      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@HEAD
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
       - uses: actions/checkout@v3
@@ -197,7 +191,7 @@ jobs:
           armv7-unknown-linux-uclibceabihf
         ]
     steps:
-      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@master
+      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@HEAD
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
       - uses: actions/checkout@v3
@@ -216,7 +210,7 @@ jobs:
     needs: [docker_linux_tier1, style_check]
     runs-on: ubuntu-22.04
     steps:
-      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@master
+      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@HEAD
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
       - uses: actions/checkout@v3
@@ -250,7 +244,7 @@ jobs:
           1.30.0,
         ]
     steps:
-      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@master
+      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@HEAD
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
       - uses: actions/checkout@v3
@@ -265,36 +259,32 @@ jobs:
 
     name: Build Channels macOS
     needs: macos
-    # FIXME: Use macOS 11 for now as CI failed with a linker error on macOS 12 image:
-    # ld: in /.../x86_64-apple-darwin/lib/libstd-a4729905.rlib(rust.metadata.bin),
-    # archive member 'rust.metadata.bin' with length 2958149 is not mach-o or llvm bitcode file '/.../x86_64-apple-darwin/lib/libstd-a4729905.rlib'
-    # Possibly related: https://github.com/actions/runner-images/issues/6350
-    runs-on: macos-11
     env:
       OS: macos
     strategy:
       fail-fast: true
       max-parallel: 4
       matrix:
-        toolchain: [
-          stable,
-          beta,
-          nightly,
-          1.13.0,
-          1.19.0,
-          1.24.0,
-          1.25.0,
-          1.30.0,
-        ]
+        target:
+          - { toolchain: stable, os: macos-12 }
+          - { toolchain: beta, os: macos-12 }
+          - { toolchain: nightly, os: macos-12 }
+          # Use macOS 11 for older toolchains as newer Xcode donesn't work well.
+          - { toolchain: 1.13.0, os: macos-11 }
+          - { toolchain: 1.19.0, os: macos-11 }
+          - { toolchain: 1.24.0, os: macos-11 }
+          - { toolchain: 1.25.0, os: macos-11 }
+          - { toolchain: 1.30.0, os: macos-11 }
+    runs-on: ${{ matrix.target.os }}
     steps:
-      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@master
+      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@HEAD
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
       - uses: actions/checkout@v3
       - name: Setup Rust toolchain
-        run: TOOLCHAIN=${{ matrix.toolchain }} sh ./ci/install-rust.sh
+        run: TOOLCHAIN=${{ matrix.target.toolchain }} sh ./ci/install-rust.sh
       - name: Execute build.sh
-        run: LIBC_CI=1 TOOLCHAIN=${{ matrix.toolchain }} sh ./ci/build.sh
+        run: LIBC_CI=1 TOOLCHAIN=${{ matrix.target.toolchain }} sh ./ci/build.sh
 
   build_channels_windows:
     permissions:
@@ -320,34 +310,25 @@ jobs:
         run: rustup self update
         shell: bash
       - name: Execute build.sh
-        run: LIBC_CI=1 TOOLCHAIN=${{ matrix.toolchain }} WIN_TARGET=${{ matrix.target }} sh ./ci/build.sh
+        run: LIBC_CI=1 TOOLCHAIN=${{ matrix.toolchain }} sh ./ci/build.sh
         shell: bash
 
-  semver_linux:
-    if: ${{ false }} # This is currently broken
-    name: Semver Linux
-    runs-on: ubuntu-22.04
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup Rust toolchain
-        # Should update the semverver revision in semver.sh if we touch nightly ver.
-        run: TOOLCHAIN=nightly-2022-05-23 sh ./ci/install-rust.sh
-      - name: Check breaking changes
-        run: sh ci/semver.sh linux
+  check_cfg:
+    permissions:
+      actions: write # to cancel workflows (rust-lang/simpleinfra/github-actions/cancel-outdated-builds)
+      contents: read # to fetch code (actions/checkout)
 
-  semver_macos:
-    if: ${{ false }} # This is currently broken
-    name: Semver macOS
-    runs-on: macos-12
-    continue-on-error: true
+    name: "Check #[cfg]s"
+    runs-on: ubuntu-22.04
     steps:
+      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@HEAD
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
       - uses: actions/checkout@v3
       - name: Setup Rust toolchain
-        # Pin nightly version to make semverver compilable.
-        run: TOOLCHAIN=nightly-2022-05-23 sh ./ci/install-rust.sh
-      - name: Check breaking changes
-        run: sh ci/semver.sh macos
+        run: TOOLCHAIN=nightly sh ./ci/install-rust.sh
+      - name: Build with check-cfg
+        run: LIBC_CI=1 LIBC_CHECK_CFG=1 cargo build -Z unstable-options -Z check-cfg=features,names,values,output
 
   docs:
     permissions:
@@ -358,7 +339,7 @@ jobs:
     runs-on: ubuntu-22.04
     needs: docker_linux_tier2
     steps:
-      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@master
+      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@HEAD
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
       - uses: actions/checkout@v3

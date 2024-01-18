@@ -102,12 +102,6 @@ i686-linux-android \
 i686-unknown-freebsd \
 i686-unknown-linux-gnu \
 i686-unknown-linux-musl \
-mips-unknown-linux-gnu \
-mips-unknown-linux-musl \
-mips64-unknown-linux-gnuabi64 \
-mips64el-unknown-linux-gnuabi64 \
-mipsel-unknown-linux-gnu \
-mipsel-unknown-linux-musl \
 powerpc-unknown-linux-gnu \
 powerpc64-unknown-linux-gnu \
 powerpc64le-unknown-linux-gnu \
@@ -117,6 +111,14 @@ x86_64-unknown-linux-gnu \
 x86_64-unknown-linux-musl \
 x86_64-unknown-netbsd \
 "
+
+# FIXME: builds of MIPS targets are currently broken on nightly.
+# mips-unknown-linux-gnu \
+# mips-unknown-linux-musl \
+# mips64-unknown-linux-gnuabi64 \
+# mips64el-unknown-linux-gnuabi64 \
+# mipsel-unknown-linux-gnu \
+# mipsel-unknown-linux-musl \
 
 RUST_GT_1_13_LINUX_TARGETS="\
 arm-unknown-linux-musleabi \
@@ -136,14 +138,14 @@ i586-unknown-linux-musl \
 "
 
 RUST_NIGHTLY_LINUX_TARGETS="\
-aarch64-fuchsia \
+aarch64-unknown-fuchsia \
 armv5te-unknown-linux-gnueabi \
 armv5te-unknown-linux-musleabi \
 i686-pc-windows-gnu \
 riscv64gc-unknown-linux-gnu \
 wasm32-wasi \
 x86_64-fortanix-unknown-sgx \
-x86_64-fuchsia \
+x86_64-unknown-fuchsia \
 x86_64-pc-solaris \
 x86_64-pc-windows-gnu \
 x86_64-unknown-illumos \
