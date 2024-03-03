@@ -174,8 +174,14 @@ s! {
     }
 
     pub struct linger {
+        #[cfg(not(target_os = "cygwin"))]
         pub l_onoff: ::c_int,
+        #[cfg(target_os = "cygwin")]
+        pub l_onoff: ::c_ushort,
+        #[cfg(not(target_os = "cygwin"))]
         pub l_linger: ::c_int,
+        #[cfg(target_os = "cygwin")]
+        pub l_linger: ::c_ushort,
     }
 
     pub struct sigval {
@@ -210,7 +216,10 @@ s! {
     pub struct protoent {
         pub p_name: *mut ::c_char,
         pub p_aliases: *mut *mut ::c_char,
+        #[cfg(not(target_os = "cygwin"))]
         pub p_proto: ::c_int,
+        #[cfg(target_os = "cygwin")]
+        pub p_proto: ::c_short,
     }
 }
 
@@ -1221,6 +1230,7 @@ extern "C" {
                 not(any(target_env = "musl", target_env = "ohos"))
             ),
             target_os = "freebsd",
+            target_os = "cygwin",
             target_os = "dragonfly",
             target_os = "haiku"
         ),
