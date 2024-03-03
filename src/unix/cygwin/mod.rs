@@ -61,7 +61,7 @@ s! {
 }
 
 // sys/select.h
-pub const FD_SETSIZE: usize = 64;
+pub const FD_SETSIZE: usize = 1024;
 pub type fd_mask = c_ulong;
 
 // intentionally not public, only used for fd_set
@@ -230,17 +230,17 @@ pub type pthread_rwlockattr_t = *mut ::c_void;
 
 // sys/sysmacros.h
 f! {
-    pub fn major(dev: dev_t) -> ::c_int {
-        ((dev >> 16) & 0xffff) as ::c_int
+    pub fn major(dev: dev_t) -> ::c_uint {
+        ((dev >> 16) & 0xffff) as ::c_uint
     }
 
-    pub fn minor(dev: dev_t) -> ::c_int {
-        (dev & 0xffff) as ::c_int
+    pub fn minor(dev: dev_t) -> ::c_uint {
+        (dev & 0xffff) as ::c_uint
     }
 }
 
 safe_f! {
-    pub {const} fn makedev(ma: ::c_int, mi: ::c_int) -> dev_t {
+    pub {const} fn makedev(ma: ::c_uint, mi: ::c_uint) -> dev_t {
         let ma = ma as dev_t;
         let mi = mi as dev_t;
         (ma << 16) | (mi & 0xffff)
@@ -258,6 +258,30 @@ pub type vm_size_t = c_ulong;
 
 // cygwin/signal.h
 s_no_extra_traits! {
+    pub struct _uc_fpxreg {
+        pub significand: [u16; 4],
+        pub exponent: u16,
+        pub padding: [u16; 3],
+    }
+
+    pub struct _uc_xmmreg {
+        pub element: [u32; 4],
+    }
+
+    pub struct _fpstate {
+        pub cwd: u16,
+        pub swd: u16,
+        pub ftw: u16,
+        pub fop: u16,
+        pub rip: u64,
+        pub rdp: u64,
+        pub mxcsr: u32,
+        pub mxcr_mask: u32,
+        pub st: [_uc_fpxreg; 8],
+        pub xmm: [_uc_xmmreg; 16],
+        pub padding: [u32; 24],
+    }
+
     #[repr(align(16))]
     pub struct mcontext_t {
         pub p1home: u64,
@@ -298,7 +322,7 @@ s_no_extra_traits! {
         pub r14: u64,
         pub r15: u64,
         pub rip: u64,
-        pub fpregs: [u64; 64],
+        pub fpregs: _fpstate,
         pub vregs: [u64; 52],
         pub vcx: u64,
         pub dbc: u64,
@@ -313,6 +337,106 @@ s_no_extra_traits! {
 
 cfg_if! {
     if #[cfg(feature = "extra_traits")] {
+        impl PartialEq for _uc_fpxreg {
+            fn eq(&self, other: &_uc_fpxreg) -> bool {
+                self.significand == other.significand &&
+                self.exponent == other.exponent &&
+                self.padding == other.padding
+            }
+        }
+
+        impl Eq for _uc_fpxreg {}
+
+        impl ::fmt::Debug for _uc_fpxreg {
+            fn fmt(&self, f: &mut ::fmt::Formatter) -> ::fmt::Result {
+                f.debug_struct("_uc_fpxreg")
+                    .field("significand", &self.significand)
+                    .field("exponent", &self.exponent)
+                    .finish()
+            }
+        }
+
+        impl ::hash::Hash for _uc_fpxreg {
+            fn hash<H: ::hash::Hasher>(&self, state: &mut H) {
+                self.significand.hash(state);
+                self.exponent.hash(state);
+                self.padding.hash(state);
+            }
+        }
+
+        impl PartialEq for _uc_xmmreg {
+            fn eq(&self, other: &_uc_xmmreg) -> bool {
+                self.element == other.element
+            }
+        }
+
+        impl Eq for _uc_xmmreg {}
+
+        impl ::fmt::Debug for _uc_xmmreg {
+            fn fmt(&self, f: &mut ::fmt::Formatter) -> ::fmt::Result {
+                f.debug_struct("_uc_xmmreg")
+                    .field("element", &self.element)
+                    .finish()
+            }
+        }
+
+        impl ::hash::Hash for _uc_xmmreg {
+            fn hash<H: ::hash::Hasher>(&self, state: &mut H) {
+                self.element.hash(state);
+            }
+        }
+
+        impl PartialEq for _fpstate {
+            fn eq(&self, other: &_fpstate) -> bool {
+                self.cwd == other.cwd &&
+                self.swd == other.swd &&
+                self.ftw == other.ftw &&
+                self.fop == other.fop &&
+                self.rip == other.rip &&
+                self.rdp == other.rdp &&
+                self.mxcsr == other.mxcsr &&
+                self.mxcr_mask == other.mxcr_mask &&
+                self.st == other.st &&
+                self.xmm == other.xmm &&
+                self.padding == other.padding
+            }
+        }
+
+        impl Eq for _fpstate {}
+
+        impl ::fmt::Debug for _fpstate {
+            fn fmt(&self, f: &mut ::fmt::Formatter) -> ::fmt::Result {
+                f.debug_struct("_fpstate")
+                    .field("cwd", &self.cwd)
+                    .field("swd", &self.swd)
+                    .field("ftw", &self.ftw)
+                    .field("fop", &self.fop)
+                    .field("rip", &self.rip)
+                    .field("rdp", &self.rdp)
+                    .field("mxcsr", &self.mxcsr)
+                    .field("mxcr_mask", &self.mxcr_mask)
+                    .field("st", &self.st)
+                    .field("xmm", &self.xmm)
+                    .finish()
+            }
+        }
+
+        impl ::hash::Hash for _fpstate {
+            fn hash<H: ::hash::Hasher>(&self, state: &mut H) {
+                self.cwd.hash(state);
+                self.swd.hash(state);
+                self.ftw.hash(state);
+                self.fop.hash(state);
+                self.rip.hash(state);
+                self.rdp.hash(state);
+                self.mxcsr.hash(state);
+                self.mxcr_mask.hash(state);
+                self.st.hash(state);
+                self.xmm.hash(state);
+                self.padding.hash(state);
+            }
+        }
+
         impl PartialEq for mcontext_t {
             fn eq(&self, other: &mcontext_t) -> bool {
                 self.p1home == other.p1home &&
@@ -352,8 +476,7 @@ cfg_if! {
                 self.r13 == other.r13 &&
                 self.r14 == other.r14 &&
                 self.r15 == other.r15 &&
-                self.fpregs.iter().zip(other.fpregs.iter())
-                .all(|(a, b)| a == b) &&
+                self.fpregs == other.fpregs &&
                 self.vregs.iter().zip(other.vregs.iter())
                 .all(|(a, b)| a == b) &&
                 self.vcx == other.vcx &&
@@ -409,7 +532,7 @@ cfg_if! {
                     .field("r13", &self.r13)
                     .field("r14", &self.r14)
                     .field("r15", &self.r15)
-                    // FIXME: .field("fpregs", &self.fpregs)
+                    .field("fpregs", &self.fpregs)
                     // FIXME: .field("vregs", &self.vregs)
                     .field("vcx", &self.vcx)
                     .field("dbc", &self.dbc)
@@ -532,24 +655,42 @@ s_no_extra_traits! {
         pub si_pid: ::pid_t,
         pub si_uid: ::uid_t,
         pub si_errno: ::c_int,
-        pub si_value: ::sigval,
-        si_tid: timer_t,
-        si_overrun: ::c_uint,
-        pub si_status: ::c_int,
-        si_utime: clock_t,
-        si_stime: clock_t,
-        pub si_addr: *mut ::c_void,
-        pub _pad: [u32; 18],
+        #[doc(hidden)]
+        #[deprecated(
+            since="0.2.54",
+            note="Please leave a comment on \
+                  https://github.com/rust-lang/libc/pull/1316 if you're using \
+                  this field"
+        )]
+        pub __pad: [u32; 32],
     }
 }
 
 impl siginfo_t {
     pub unsafe fn si_addr(&self) -> *mut ::c_void {
-        self.si_addr
+        #[repr(C)]
+        struct siginfo_si_addr {
+            _si_signo: ::c_int,
+            _si_code: ::c_int,
+            _si_pid: ::pid_t,
+            _si_uid: ::uid_t,
+            _si_errno: ::c_int,
+            si_addr: *mut ::c_void,
+        }
+        (*(self as *const siginfo_t as *const siginfo_si_addr)).si_addr
     }
 
     pub unsafe fn si_status(&self) -> ::c_int {
-        self.si_status
+        #[repr(C)]
+        struct siginfo_sigchld {
+            _si_signo: ::c_int,
+            _si_code: ::c_int,
+            _si_pid: ::pid_t,
+            _si_uid: ::uid_t,
+            _si_errno: ::c_int,
+            si_status: ::c_int,
+        }
+        (*(self as *const siginfo_t as *const siginfo_sigchld)).si_status
     }
 
     pub unsafe fn si_pid(&self) -> ::pid_t {
@@ -561,7 +702,16 @@ impl siginfo_t {
     }
 
     pub unsafe fn si_value(&self) -> ::sigval {
-        self.si_value
+        #[repr(C)]
+        struct siginfo_si_value {
+            _si_signo: ::c_int,
+            _si_code: ::c_int,
+            _si_pid: ::pid_t,
+            _si_uid: ::uid_t,
+            _si_errno: ::c_int,
+            si_value: ::sigval,
+        }
+        (*(self as *const siginfo_t as *const siginfo_si_value)).si_value
     }
 }
 
@@ -574,9 +724,7 @@ cfg_if! {
                     && self.si_pid == other.si_pid
                     && self.si_uid == other.si_uid
                     && self.si_errno == other.si_errno
-                    && self.si_value == other.si_value
-                    && self.si_status == other.si_status
-                    && self.si_addr == other.si_addr
+                    // Ignore __pad
             }
         }
 
@@ -590,9 +738,7 @@ cfg_if! {
                     .field("si_pid", &self.si_pid)
                     .field("si_uid", &self.si_uid)
                     .field("si_errno", &self.si_errno)
-                    .field("si_value", &self.si_value)
-                    .field("si_status", &self.si_status)
-                    .field("si_addr", &self.si_addr)
+                    // Ignore __pad
                     .finish()
             }
         }
@@ -604,9 +750,7 @@ cfg_if! {
                 self.si_pid.hash(state);
                 self.si_uid.hash(state);
                 self.si_errno.hash(state);
-                self.si_value.hash(state);
-                self.si_status.hash(state);
-                self.si_addr.hash(state);
+                // Ignore __pad
             }
         }
     }
@@ -1045,9 +1189,11 @@ s_no_extra_traits! {
         #[cfg(libc_union)]
         pub ifr_ifru: __c_anonymous_ifr_ifru,
         #[cfg(not(libc_union))]
+        __pad1: [c_char; 4],
+        #[cfg(not(libc_union))]
         pub ifr_ifru: sockaddr,
         #[cfg(not(libc_union))]
-        __pad: [c_char; 12],
+        __pad2: [c_char; 16],
     }
 }
 
@@ -1127,6 +1273,8 @@ s! {
         pub ifc_len: ::c_int,
         #[cfg(libc_union)]
         pub ifc_ifcu: __c_anonymous_ifc_ifcu,
+        #[cfg(not(libc_union))]
+        pub ifc_ifcu: *mut ifreq,
     }
 }
 
@@ -1656,7 +1804,7 @@ cfg_if! {
 pub const FORK_RELOAD: ::c_int = 1;
 pub const FORK_NO_RELOAD: ::c_int = 0;
 extern "C" {
-    fn dlfork(val: ::c_int);
+    pub fn dlfork(val: ::c_int);
 }
 
 pub const RTLD_DEFAULT: *mut ::c_void = 0isize as *mut ::c_void;
@@ -1670,7 +1818,7 @@ pub const RTLD_DEEPBIND: ::c_int = 32;
 
 s! {
     pub struct Dl_info {
-        pub dli_fname: *const c_char,
+        pub dli_fname: [::c_char; ::PATH_MAX as usize],
         pub dli_fbase: *mut ::c_void,
         pub dli_sname: *const c_char,
         pub dli_saddr: *mut ::c_void,
@@ -1877,7 +2025,7 @@ s_no_extra_traits! {
         pub sin_family: sa_family_t,
         pub sin_port: ::in_port_t,
         pub sin_addr: in_addr,
-        pub sin_zero: [c_char; 8],
+        pub sin_zero: [u8; 8],
     }
 }
 
@@ -2006,7 +2154,7 @@ pub const LC_MONETARY_MASK: ::c_int = 1 << 3;
 pub const LC_NUMERIC_MASK: ::c_int = 1 << 4;
 pub const LC_TIME_MASK: ::c_int = 1 << 5;
 pub const LC_MESSAGES_MASK: ::c_int = 1 << 6;
-pub const LC_GLOBAL_LOCALE: *mut ::locale_t = -1isize as *mut ::locale_t;
+pub const LC_GLOBAL_LOCALE: ::locale_t = -1isize as ::locale_t;
 
 s! {
     pub struct lconv {
@@ -2383,7 +2531,6 @@ extern "C" {
     pub fn arc4random() -> u32;
     pub fn arc4random_uniform(l: u32) -> u32;
     pub fn arc4random_buf(buf: *mut ::c_void, size: ::size_t);
-    pub fn atof(s: *const c_char) -> ::c_double;
     pub fn labs(i: c_long) -> c_long;
     pub fn mkostemp(template: *mut c_char, flags: ::c_int) -> ::c_int;
     pub fn mkostemps(template: *mut c_char, suffixlen: ::c_int, flags: ::c_int) -> ::c_int;
@@ -2489,7 +2636,7 @@ extern "C" {
     ) -> *mut ::c_void;
 
     pub fn memrchr(cx: *const ::c_void, c: ::c_int, n: ::size_t) -> *mut ::c_void;
-    pub fn strerror_r(errnum: ::c_int, buf: *mut c_char, buflen: ::size_t) -> c_char;
+    pub fn strerror_r(errnum: ::c_int, buf: *mut c_char, buflen: ::size_t) -> ::c_int;
     pub fn strsep(string: *mut *mut c_char, delim: *const c_char) -> *mut c_char;
 
     #[link_name = "__gnu_basename"]
