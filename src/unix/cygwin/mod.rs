@@ -3232,3 +3232,84 @@ s! {
         pub l_pid: ::pid_t,
     }
 }
+
+// sys/utsname.h
+s_no_extra_traits! {
+    pub struct utsname {
+        pub sysname: [::c_char; 65],
+        pub nodename: [::c_char; 65],
+        pub release: [::c_char; 65],
+        pub version: [::c_char; 65],
+        pub machine: [::c_char; 65],
+        pub domainname: [::c_char; 65],
+    }
+}
+
+
+cfg_if! {
+    if #[cfg(feature = "extra_traits")] {
+        impl PartialEq for utsname {
+            fn eq(&self, other: &utsname) -> bool {
+                self.sysname
+                    .iter()
+                    .zip(other.sysname.iter())
+                    .all(|(a,b)| a == b)
+                    && self
+                    .nodename
+                    .iter()
+                    .zip(other.nodename.iter())
+                    .all(|(a,b)| a == b)
+                    && self
+                    .release
+                    .iter()
+                    .zip(other.release.iter())
+                    .all(|(a,b)| a == b)
+                    && self
+                    .version
+                    .iter()
+                    .zip(other.version.iter())
+                    .all(|(a,b)| a == b)
+                    && self
+                    .machine
+                    .iter()
+                    .zip(other.machine.iter())
+                    .all(|(a,b)| a == b)
+                    && self
+                    .domainname
+                    .iter()
+                    .zip(other.domainname.iter())
+                    .all(|(a,b)| a == b)
+            }
+        }
+
+        impl Eq for utsname {}
+
+        impl ::fmt::Debug for utsname {
+            fn fmt(&self, f: &mut ::fmt::Formatter) -> ::fmt::Result {
+                f.debug_struct("utsname")
+                // FIXME: .field("sysname", &self.sysname)
+                // FIXME: .field("nodename", &self.nodename)
+                // FIXME: .field("release", &self.release)
+                // FIXME: .field("version", &self.version)
+                // FIXME: .field("machine", &self.machine)
+                // FIXME: .field("domainname", &self.domainname)
+                    .finish()
+            }
+        }
+
+        impl ::hash::Hash for utsname {
+            fn hash<H: ::hash::Hasher>(&self, state: &mut H) {
+                self.sysname.hash(state);
+                self.nodename.hash(state);
+                self.release.hash(state);
+                self.version.hash(state);
+                self.machine.hash(state);
+                self.domainname.hash(state);
+            }
+        }
+    }
+}
+
+extern "C" {
+    pub fn uname(buf: *mut utsname) -> ::c_int;
+}
