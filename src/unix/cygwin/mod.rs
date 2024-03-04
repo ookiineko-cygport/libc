@@ -2543,7 +2543,7 @@ extern "C" {
     pub fn dup3(src: ::c_int, dst: ::c_int, flags: ::c_int) -> ::c_int;
     pub fn eaccess(pathname: *const c_char, mode: ::c_int) -> ::c_int;
     pub fn euidaccess(pathname: *const c_char, mode: ::c_int) -> ::c_int;
-    pub fn execlpe(path: *const c_char, arg0: *const c_char, ...) -> ::c_int;
+    // pub fn execlpe(path: *const c_char, arg0: *const c_char, ...) -> ::c_int;
 
     pub fn execvpe(
         file: *const c_char,
