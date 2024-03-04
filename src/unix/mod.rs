@@ -1411,15 +1411,18 @@ extern "C" {
     pub fn lockf(fd: ::c_int, cmd: ::c_int, len: ::off_t) -> ::c_int;
 
 }
-cfg_if! {
-    if #[cfg(not(any(target_os = "emscripten",
-                     target_os = "android",
-                     target_os = "haiku")))] {
-        extern "C" {
-            pub fn adjtime(delta: *const timeval, olddelta: *mut timeval) -> ::c_int;
-            pub fn stpncpy(dst: *mut c_char, src: *const c_char, n: size_t) -> *mut c_char;
-        }
-    }
+
+extern "C" {
+    #[cfg(not(any(target_os = "emscripten",
+                  target_os = "android",
+                  target_os = "cygwin",
+                  target_os = "haiku")))]
+    pub fn adjtime(delta: *const timeval, olddelta: *mut timeval) -> ::c_int;
+
+    #[cfg(not(any(target_os = "emscripten",
+                  target_os = "android",
+                  target_os = "haiku")))]
+    pub fn stpncpy(dst: *mut c_char, src: *const c_char, n: size_t) -> *mut c_char;
 }
 
 cfg_if! {
