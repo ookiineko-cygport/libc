@@ -28,6 +28,7 @@ fn do_cc() {
             || target.contains("emscripten")
             || target.contains("fuchsia")
             || target.contains("bsd")
+            || target.contains("cygwin")
         {
             cc::Build::new().file("src/makedev.c").compile("makedev");
         }
