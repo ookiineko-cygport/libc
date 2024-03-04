@@ -638,6 +638,7 @@ s! {
 }
 
 pub const SA_NOCLDSTOP: ::c_int = 0x00000001;
+pub const SA_NOCLDWAIT: ::c_int = 0; // FIXME: does not exist on Cygwin!
 pub const SA_SIGINFO: ::c_int = 0x00000002;
 pub const SA_RESTART: ::c_int = 0x10000000;
 pub const SA_ONSTACK: ::c_int = 0x20000000;
@@ -1138,6 +1139,7 @@ extern "C" {
 pub const FIONREAD: Ioctl = 0x4008667f;
 pub const FIONBIO: Ioctl = 0x8004667e;
 pub const FIOASYNC: Ioctl = 0x8008667d;
+pub const FIOCLEX: Ioctl = 0; // FIXME: does not exist on Cygwin!
 pub const SIOCGIFCONF: c_ulong = 0x80107364;
 pub const SIOCGIFFLAGS: c_ulong = 0x80507365;
 pub const SIOCGIFADDR: c_ulong = 0x80507366;
